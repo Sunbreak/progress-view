@@ -1,117 +1,143 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import * as React from 'react';
+import {StyleSheet, Text, SafeAreaView, Platform} from 'react-native';
+import {ProgressView} from '@react-native-community/progress-view';
 
-import React from 'react';
-import type {Node} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+type Props = {||};
+type State = {|
+  progress: number,
+|};
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+class App extends React.Component<Props, State> {
+  _rafId: ?AnimationFrameID = null;
 
-/* $FlowFixMe[missing-local-annot] The type annotation(s) required by Flow's
- * LTI update could not be added via codemod */
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
-
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  state = {
+    progress: 0,
   };
 
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+  componentDidMount() {
+    this.updateProgress();
+  }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+  componentWillUnmount() {
+    if (this._rafId != null) {
+      cancelAnimationFrame(this._rafId);
+    }
+  }
+
+  updateProgress = () => {
+    const progress = this.state.progress + 0.01;
+    this.setState({progress});
+    this._rafId = requestAnimationFrame(() => this.updateProgress());
+  };
+
+  /* $FlowFixMe(>=0.85.0 site=react_native_fb) This comment suppresses an error
+   * found when Flow v0.85 was deployed. To see the error, delete this comment
+   * and run Flow. */
+  getProgress = (offset) => {
+    const progress = this.state.progress + offset;
+    return Math.sin(progress % Math.PI) % 1;
+  };
+
+  render() {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>
+          ProgressView Example (
+          {global?.nativeFabricUIManager ? 'Fabric' : 'Paper'})
+        </Text>
+        <ProgressView
+          style={styles.progressView}
+          progress={this.getProgress(0)}
+          testID={'p1'}
+        />
+        <ProgressView
+          style={styles.progressView}
+          progressTintColor="purple"
+          progress={this.getProgress(0.2)}
+          testID={'p2'}
+        />
+        <ProgressView
+          style={styles.progressView}
+          progressTintColor="red"
+          progress={this.getProgress(0.4)}
+          testID={'p3'}
+        />
+        <ProgressView
+          style={styles.progressView}
+          progressTintColor="orange"
+          progress={this.getProgress(0.6)}
+          testID={'p4'}
+        />
+        <ProgressView
+          style={styles.progressView}
+          progressTintColor="yellow"
+          progress={this.getProgress(0.8)}
+          testID={'p5'}
+        />
+
+        <Text style={styles.text}>isIndeterminate</Text>
+        <ProgressView
+          style={styles.progressView}
+          isIndeterminate={true}
+          testID={'Indeterminate'}
+        />
+        <Text style={styles.text}>ProgressImage with local image</Text>
+        <ProgressView
+          style={styles.progressView}
+          progress={0.5}
+          progressImage={require('./test.png')}
+          testID={'localimage'}
+        />
+        <Text style={styles.text}>TrackImage with network image</Text>
+        {Platform.OS === 'windows' ? (
+          <ProgressView
+            style={styles.progressView}
+            progress={0.5}
+            trackImage={{
+              uri: 'https://homepages.cae.wisc.edu/~ece533/images/cat.png',
+            }}
+            testID={'networkimage'}
+          />
+        ) : (
+          <Text>Network Images only work on Windows</Text>
+        )}
+        <Text style={styles.text}>TrackTint Color</Text>
+        <ProgressView
+          style={styles.progressView}
+          progress={0.8}
+          trackTintColor={'red'}
+          progressTintColor={'yellow'}
+          testID={'trackcolor'}
+        />
+        <Text style={styles.text}>Bar Style</Text>
+        <ProgressView
+          style={styles.progressView}
+          progress={0.4}
+          progressViewStyle={'bar'}
+          testID={'bar'}
+        />
+      </SafeAreaView>
+    );
+  }
+}
 
 export default App;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  progressView: {
+    marginTop: 20,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginTop: 10,
+  },
+});
